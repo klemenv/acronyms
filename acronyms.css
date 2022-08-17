@@ -1,8 +1,23 @@
 body {
-  margin:50;
+  margin:0;
   padding:0;
   background-color: #ECEFF1;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+footer {
+  font-size: .75rem;
+  text-align: center;
+  color: gray;
+  margin-top: auto;
+  margin-bottom: .5rem;
+}
+
+footer a {
+  color: gray;  
 }
 
 .search-wrapper {
@@ -25,7 +40,9 @@ body {
 }
 
 .top-padding {
-  height: 2.5rem;
+  height: 3rem;
+  min-height: 3rem;
+  max-height: 3rem;
 }
 
 input {
