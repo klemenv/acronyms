@@ -1,6 +1,8 @@
 body {
-  margin:0;
-  padding:0
+  margin:50;
+  padding:0;
+  background-color: #ECEFF1;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 .search-wrapper {
@@ -18,69 +20,22 @@ body {
   flex-wrap: wrap;
   gap: .25rem;
   margin-bottom: 1rem;
-  background-color: #ccc;
+  color: #ECEFF1;
+  background-color: #546E7A;
+}
+
+.top-padding {
+  height: 2.5rem;
 }
 
 input {
   font-size: 1rem;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  width: 15rem;
 }
 
 .hide {
   display: none;
-}
-
-.acronym-cards {
-  position: absolute;
-  top: 3rem;  
-  left: 2rem;
-}
-
-.acronym-name {
-    width: 150px;
-    min-width: 10%;
-    max-width: 15%
-}
-
-.acronym-body-left-pad {
-    width: 150px;
-    min-width: 10%;
-    max-width: 15%
-}
-
-.details-spacer {
-  width: 150px;
-  min-width: 10%;
-  max-width: 15%
-}
-
-details {
-    padding: .2em .2em 0;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-  }
-
-summary {
-    display: flex;
-    flex-direction: row;
-    margin: -.2em -.2em 0;
-    padding: .2em;
-}
-
-details[open] {
-  border: 1px solid #aaa;
-  border-radius: 3px;
-  padding: .2rem;
-  background-color: rgb(236, 236, 236);
-    display: flex;
-    flex-direction: row;
-}
-
-summary::-webkit-details-marker {
-    display: none;
-}
-
-details[open] summary {
-    border-bottom: 1px solid #aaa;
-    margin-bottom: .2rem;
 }
 
 .acronym-tags {
@@ -88,34 +43,59 @@ details[open] summary {
   flex-direction: row;
   align-items: center;
   margin-top: .5rem;
+  color: #ECEFF1;
 }
 
 .acronym-tag {
-    border: 1px solid #ccc;
-    border-radius: 2px;
-    padding: .1rem .2rem .1rem .2rem;
-    margin-left: .5rem;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  padding: .1rem .2rem .1rem .2rem;
+  margin-left: .5rem;
+  color: #5e5e5e;
+}
+
+.acronym-description {
+  color: #ECEFF1;
 }
 
 a.acronym-link {
   text-decoration: none;
-  color: #33691e ;
+  color: #ECEFF1;
+  font-style: italic;
 }
 
 a.acronym-tag {
   text-decoration: none;
-  color: black;
-  background-color: white;
+  background-color: #ECEFF1;
 }
 
 a.acronym-tag:hover {
-  background-color: #eef6ef;
+  background-color: #DAE0E6;
 }
 
-.cardA {
+.acronyms-container {
   background-color: white;
+  width: 40rem;
+  min-width: 15rem;
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.cardB {
-  background-color: white;
+.acronym-card {
+  display: grid;
+  grid-template-columns: 1fr 5fr;
+  grid-gap: 1rem;
+  padding: 1rem;
+  border-bottom: 2px solid #ECEFF1;
+  cursor: pointer;
+}
+
+.active, .acronym-card:hover {
+  background-color: #B0BEC5;
+}
+
+.acronym-expanded {
+  display: none;
+  overflow: hidden;
 }

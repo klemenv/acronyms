@@ -1,0 +1,39 @@
+body {
+  background-color: #ECEFF1;
+}
+
+.search-wrapper {
+  color: #ECEFF1;
+}
+
+.acronym-tags {
+  color: #ECEFF1;
+}
+
+.acronym-description {
+  color: #ECEFF1;
+}
+
+a.acronym-link {
+  color: #ECEFF1;
+}
+
+a.acronym-tag {
+  background-color: #ECEFF1;
+}
+
+a.acronym-tag:hover {
+  background-color: #DAE0E6;
+}
+
+.acronyms-container {
+  background-color: white;
+}
+
+.acronym-card {
+  border-bottom-color: #ECEFF1;
+}
+
+.active, .acronym-card:hover {
+  background-color: #B0BEC5;
+}

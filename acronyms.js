@@ -2,7 +2,7 @@ const acronymCardTemplate = document.querySelector("[data-acronym-template]")
 const acronymCardContainer = document.querySelector("[data-acronym-cards-container]")
 const searchInput = document.querySelector("[data-search]")
 
-const URL = "?search="
+const URL = "?limit=100&search="
 
 let acronyms = []
 
@@ -19,12 +19,14 @@ function fetchAndShow(url) {
       data.forEach(acronym => {
         const card = acronymCardTemplate.content.cloneNode(true).children[0]
         card.querySelector("[data-name]").textContent = acronym.name
-        card.querySelector("[data-expanded]").textContent = acronym.expanded
+        card.querySelector("[data-definition]").textContent = acronym.definition
+
         if (acronym.description) {
           card.querySelector("[data-description]").textContent = acronym.description
         } else {
           card.querySelector("[data-description]").classList.add("hide")
         }
+
         if (acronym.tags) {
           acronym.tags.forEach(tag => {
             const el = card.querySelector("[data-acronym-tag-template]").content.cloneNode(true).children[0]
@@ -36,12 +38,26 @@ function fetchAndShow(url) {
         } else {
           card.querySelector("[data-tags]").classList.add("hide")
         }
+
         if (acronym.link) {
           card.querySelector("[data-link]").textContent = acronym.link.replace(/(.{100})..+/, "$1...")
           card.querySelector("[data-link]").href = acronym.link
         } else {
-          card.querySelector("[data-link]").classList.add("hide")
+          card.querySelector("[data-link]").style.display = "none";
         }
+
+        card.querySelector("[data-expanded]").style.display = "none";
+        card.addEventListener("click", function() {
+          const content = this.querySelector("[data-expanded]");
+          if (content.style.display === "block") {
+            content.style.display = "none";
+            this.classList.remove("active");
+          } else {
+            content.style.display = "block";
+            this.classList.add("active");
+          }
+        });
+
         acronymCardContainer.append(card)
       })
     })
@@ -65,17 +81,3 @@ searchInput.addEventListener("input", (e) => {
 })
 
 fetchAndShow(URL)
-/*
-fetch(url, { cache: "no-cache" })
-  .then(res => res.json())
-  .then(data => {
-    acronyms = data.map(acronym => {
-      const card = acronymCardTemplate.content.cloneNode(true).children[0]
-      card.querySelector("[data-name]").textContent = acronym.name
-      card.querySelector("[data-expanded]").textContent = acronym.expanded
-      card.querySelector("[data-description]").textContent = acronym.description
-      acronymCardContainer.append(card)
-      return { name: acronym.name, expanded: acronym.expanded, element: card }
-    })
-  })
-*/

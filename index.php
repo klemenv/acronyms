@@ -1,8 +1,5 @@
 <?php
 
-/* Optimize number of results, user likely not interested in many results */
-const MAX_RESULTS = 1000;
-
 /* Path to SQLite database file */
 const DB_FILENAME = "acronyms.db";
 
@@ -44,7 +41,7 @@ class AcronymsDB extends SQLite3 {
        }
 }
 
-function searchAcronyms($pattern) {
+function searchAcronyms($pattern, $limit) {
        try {
               $db = new AcronymsDB();
        } catch (Exception $e) {
@@ -52,32 +49,36 @@ function searchAcronyms($pattern) {
        }
        
        // User is most likely looking for a specific acronym, why bother processing thousands records
-       $max_results = (string)MAX_RESULTS;
+       if ($limit > 0) {
+              $sql_limit = " LIMIT " . (string)$limit;
+       } else {
+              $sql_limit = "";
+       }
 
        if (strlen($pattern) == 0) {
               $sqls = array(
-                     "SELECT * FROM acronyms ORDER BY name LIMIT $max_results;"
+                     "SELECT * FROM acronyms ORDER BY name" . $sql_limit . ";",
               );
        } else {
               $pattern = AcronymsDB::escapeString($pattern);
               $sqls = array(
-                     "SELECT * FROM acronyms WHERE name LIKE '%$pattern%' LIMIT $max_results;",
-                     "SELECT * FROM acronyms WHERE tags LIKE '%$pattern%' LIMIT $max_results;",
-                     "SELECT * FROM acronyms WHERE expanded LIKE '%$pattern%' LIMIT $max_results;",
-                     "SELECT * FROM acronyms WHERE description LIKE '%$pattern%' LIMIT $max_results;"
+                     "SELECT * FROM acronyms WHERE name LIKE '%$pattern%'" . $sql_limit . ";",
+                     "SELECT * FROM acronyms WHERE tags LIKE '%$pattern%'" . $sql_limit . ";",
+                     "SELECT * FROM acronyms WHERE definition LIKE '%$pattern%'" . $sql_limit . ";",
+                     "SELECT * FROM acronyms WHERE description LIKE '%$pattern%'" . $sql_limit . ";",
               );
        }
        
        $ids = array();
        $matches = array();
        foreach ($sqls as &$sql) {
-              if (count($ids) >= MAX_RESULTS) {
-                     break;
-              }
-       
               $result = $db->query($sql);
               if ($result) {
                      while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                            if ($limit > 0 && count($ids) >= $limit) {
+                                   break;
+                            }
+              
                             if (!in_array($row["id"], $ids)) {
                                    $row["tags"] = explode(",", $row["tags"]);
        
@@ -86,14 +87,22 @@ function searchAcronyms($pattern) {
                             }
                      }
               }
+              if ($limit > 0 && count($ids) >= $limit) {
+                     break;
+              }
        }
        return json_encode($matches, JSON_PRETTY_PRINT);
 }
 
 $search = "";
 if (in_array("search", array_keys($_REQUEST))) {
+       if (in_array("limit", array_keys($_REQUEST))) {
+              $limit = intval($_REQUEST["limit"]);
+       } else {
+              $limit = 0;
+       }
        header("Content-Type: application/json; charset=UTF-8");
-       echo searchAcronyms($_REQUEST["search"]);
+       echo searchAcronyms($_REQUEST["search"], $limit);
 } else {
        header("Content-Type: text/html; charset=UTF-8");
        $fp = fopen(INDEX_HTML, "rb");
