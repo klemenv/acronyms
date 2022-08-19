@@ -13,7 +13,8 @@
 <body>
   <div class="search-wrapper">
     <label for="search">Search Acronyms</label>
-    <input type="search" id="search" data-search>
+    <input type="search" id="search" class="acronyms-search" data-search>
+    <img class="acronym-action-icon" data-add src="add-svgrepo-com.svg" title="Add a new acronym definition">
   </div>
 
   <div class="top-padding"></div>
@@ -21,7 +22,14 @@
   <div class="acronyms-container" data-acronym-cards-container>
     <template data-acronym-template>
     <div class="acronym-card" data-card>
-      <div data-name></div>
+      <div>
+        <div class="hide" data-id></div>
+        <div data-name></div>
+        <div class="acronym-actions" data-actions>
+          <img class="acronym-action-icon" data-edit src="edit-svgrepo-com.svg" title="Edit acronym info">
+          <img class="acronym-action-icon" data-delete src="delete-svgrepo-com.svg" title="Delete acronym">
+        </div>
+      </div>
       <div>
         <div class="acronym-definition" data-definition></div>
         <div data-expanded>
@@ -38,12 +46,39 @@
     </template>
   </div>
 
-</body>
-
-<footer>
-  <div>
-    <a href="https://github.com/klemenv/acronyms">Acronyms</a> is an online tool for sharing relevant acronyms through a quick lookup.
+  <div data-card-edit>
+    <div class="acronym-card-edit">
+      <div>
+        <input class="hide" data-id>
+        <input size="6" placeholder="ACRONYM" class="acronym-name-edit" data-name>
+        <div class="acronym-actions" data-actions>
+          <img class="acronym-action-icon" src="ok-svgrepo-com.svg" title="Confirm changes" data-confirm>
+          <img class="acronym-action-icon" src="cancel-svgrepo-com.svg" title="Cancel changes" data-cancel>
+        </div>
+      </div>
+      <div>
+        <div>
+          <input placeholder="Spelled out acronym definition" class="acronym-definition-edit" data-definition><br/>
+          <textarea rows="5" placeholder="Additional description and information" class="acronym-description-edit" data-description></textarea><br/>
+          <input placeholder="http://link/to/more/resources" class="acronym-link-edit" data-link><br/>
+          <div class="acronym-tags">
+            <div class="acronym-tags-edit-box"><input placeholder="Tag 1" class="acronym-tags-edit" data-tag1></div>
+            <div class="acronym-tags-edit-box"><input placeholder="Tag 2" class="acronym-tags-edit" data-tag2></div>
+            <div class="acronym-tags-edit-box"><input placeholder="Tag 3" class="acronym-tags-edit" data-tag3></div>
+            <div class="acronym-tags-edit-box"><input placeholder="Tag 4" class="acronym-tags-edit" data-tag4></div>
+            <div class="acronym-tags-edit-box"><input placeholder="Tag 5" class="acronym-tags-edit" data-tag5></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</footer>
+
+  <footer>
+    <div>
+      <a href="https://github.com/klemenv/acronyms">Acronyms</a> is an online tool for sharing relevant acronyms through a quick lookup.
+    </div>
+  </footer>
+
+</body>
 
 </html>
