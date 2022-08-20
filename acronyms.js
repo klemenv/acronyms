@@ -1,9 +1,10 @@
-const acronymCardTemplate = document.querySelector("[data-acronym-template]")
-const acronymCardContainer = document.querySelector("[data-acronym-cards-container]")
-const searchInput = document.querySelector("[data-search]")
+const acronymCardTemplate = document.querySelector("[data-acronym-template]");
+const acronymCardContainer = document.querySelector("[data-acronym-cards-container]");
+const searchInput = document.querySelector("[data-search]");
 
 const ADD_URL = "?add=";
-const EDIT_URL = "?change=";
+const GET_URL = "?get=";
+const UPDATE_URL = "?update=";
 const REMOVE_URL = "?remove=";
 const SEARCH_URL = "?limit=100&search="
 const TAGS_URL = "?tags="
@@ -23,8 +24,13 @@ function refreshTags() {
 }
 
 class AcronymCardHandler {
-  /** Assign JSON data to HTML card container */
-  static assign(card, data) {
+  static create(data, sibling = null) {
+    const card = acronymCardTemplate.content.cloneNode(true).children[0];
+    if (sibling) {
+      acronymCardContainer.insertBefore(card, sibling);
+    } else {
+      acronymCardContainer.append(card);
+    }
 
     // Acronym name and long definition are required fields and always available
     card.querySelector("[data-id]").textContent = data.id
@@ -54,11 +60,12 @@ class AcronymCardHandler {
       card.querySelector("[data-tags]").style.display = "none";
     }
 
-    // Change the fields to editable when Edit button is pressed
     card.querySelector("[data-edit]").addEventListener("click", function () {
-      // No need to expand the card, its own event listener already did it
-      //AcronymCardHandler.enableEdits(card);
-      console.log("Want to edit this card?");
+      acronymCardContainer.querySelectorAll("[data-card]").forEach(el => {
+        el.classList.remove("hide");
+      });
+      EditCardHandler.copyFromCard(card);
+      EditCardHandler.show(card);
     });
 
     card.querySelector("[data-delete]").addEventListener("click", function () {
@@ -96,16 +103,6 @@ class AcronymCardHandler {
         card.classList.add("active");
       }
     });
-
-  }
-
-  static enableEdits(card) {
-    const nameInput = document.createElement("INPUT");
-    nameInput.setAttribute("type", "text");
-    nameInput.setAttribute("value", card.querySelector("[data-name]").textContent);
-    nameInput.setAttribute("placeholder", "ACRONYM");
-    card.querySelector("[data-name]").textContent = "";
-    card.querySelector("[data-name]").appendChild(nameInput);
   }
 }
 
@@ -115,7 +112,27 @@ class EditCardHandler {
 
     editCard.style.display = "none";
     editCard.querySelector("[data-confirm]").addEventListener("click", EditCardHandler.submit);
-    editCard.querySelector("[data-cancel]").addEventListener("click", EditCardHandler.cancel);
+    editCard.querySelector("[data-cancel]").addEventListener("click", function() {
+      EditCardHandler.cancel();
+      acronymCardContainer.querySelectorAll("[data-card]").forEach(el => {
+        el.classList.remove("hide");
+      });
+    });
+  }
+
+  static copyFromCard(card) {
+    const editCard = document.querySelector("[data-card-edit]");
+
+    const fields = ["[data-id]", "[data-name]", "[data-definition]",
+                    "[data-description]", "[data-link]" ];
+    fields.forEach(field => {
+      editCard.querySelector(field).value = card.querySelector(field).textContent;
+    });
+
+    // Treat tags differently
+    card.querySelectorAll("[data-tag]").forEach((el, i) => {
+      editCard.querySelector("[data-tag"+(i+1).toString()+"]").value = el.textContent;
+    });
   }
 
   static assignTags(tags) {
@@ -150,22 +167,36 @@ class EditCardHandler {
         acronym.tags = tags;
       }
 
-      fetch(ADD_URL, {
+      const id = editCard.querySelector("[data-id]").value;
+      const url = (id ? UPDATE_URL + id : ADD_URL);
+
+      fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(acronym),
       })
         .then(res => res.json())
         .then(data => {
-          console.log(data);
           if (data.status == "ok") {
-            EditCardHandler.hide();
-            EditCardHandler.clear();
+            // Fetch data from the database, even though we just inserted it
+            fetch(GET_URL + data.id)
+              .then(res => res.json())
+              .then(acronym => {
+                // Delete the old card if it exists
+                if (id) {
+                  const oldCard = editCard.nextSibling;
+                  if (oldCard.querySelector("[data-id]").textContent == data.id) {
+                    acronymCardContainer.removeChild(oldCard);
+                  }
+                }
 
-            const card = acronymCardTemplate.content.cloneNode(true).children[0];
-            AcronymCardHandler.assign(card, acronym);
-            acronymCardContainer.prepend(card);
-            refreshTags();
+                AcronymCardHandler.create(acronym, editCard);
+
+                // Hide the edit card
+                EditCardHandler.hide();
+                EditCardHandler.clear();
+                refreshTags();
+              });
           }
         });
     }
@@ -174,23 +205,37 @@ class EditCardHandler {
   static cancel() {
     const editCard = document.querySelector("[data-card-edit]");
 
-    // Invalidate the id to prevent accidental submittal
-    editCard.querySelector("[data-id]").value = "";
-    editCard.style.display = "none";
+    EditCardHandler.clear();
+    EditCardHandler.hide();
   }
 
-  static toggle(id = "") {
+  static toggle() {
     const editCard = document.querySelector("[data-card-edit]");
+    const id = editCard.querySelector("[data-id]").value;
+
+    if (id) {
+      // Edit card must be displayed from a previously attempted editing of existing acronym
+      EditCardHandler.clear();
+      EditCardHandler.hide();
+    }
 
     if (editCard.style.display != "none") {
-      editCard.style.display = "none";
+      EditCardHandler.hide();
     } else {
-      editCard.style.display = "block";
-
-      if (!id) {
-        acronymCardContainer.prepend(editCard);
-      }
+      EditCardHandler.show();
     }
+  }
+
+  static show(sibling) {
+    const editCard = document.querySelector("[data-card-edit]");
+
+    if (sibling) {
+      acronymCardContainer.insertBefore(editCard, sibling);
+      sibling.classList.add("hide");
+    } else {
+      acronymCardContainer.prepend(editCard);
+    }
+    editCard.style.display = "block";
   }
 
   static hide() {
@@ -202,9 +247,9 @@ class EditCardHandler {
 
   static clear() {
     const editCard = document.querySelector("[data-card-edit]");
-    const fields = [ "[data-id]", "[data-name]", "[data-definition]",
-                     "[data-description]", "[data-link]", "[data-tag1]",
-                     "[data-tag2]", "[data-tag3]", "[data-tag4]", "[data-tag5]" ]
+    const fields = ["[data-id]", "[data-name]", "[data-definition]",
+      "[data-description]", "[data-link]", "[data-tag1]",
+      "[data-tag2]", "[data-tag3]", "[data-tag4]", "[data-tag5]"]
     fields.forEach(field => {
       editCard.querySelector(field).value = "";
     });
@@ -212,7 +257,7 @@ class EditCardHandler {
 };
 
 searchInput.addEventListener("input", (e) => {
-  var last;
+  let last;
   EditCardHandler.hide();
   while (last = acronymCardContainer.lastChild) {
     acronymCardContainer.removeChild(last);
@@ -221,12 +266,8 @@ searchInput.addEventListener("input", (e) => {
   fetch(SEARCH_URL + e.target.value)
     .then(res => res.json())
     .then(data => {
-      data.forEach(acronym => {
-        const card = acronymCardTemplate.content.cloneNode(true).children[0];
-        AcronymCardHandler.assign(card, acronym);
-        acronymCardContainer.append(card);
-      })
-    })
+      data.forEach(acronym => AcronymCardHandler.create(acronym))
+    });
 
   /*
   const value = e.target.value.toLowerCase()
@@ -237,7 +278,12 @@ searchInput.addEventListener("input", (e) => {
   */
 })
 
-document.querySelector("[data-add]").addEventListener("click", function () { EditCardHandler.toggle(); });
+document.querySelector("[data-add]").addEventListener("click", function () { 
+  acronymCardContainer.querySelectorAll("[data-card]").forEach(el => {
+    el.classList.remove("hide");
+  });
+  EditCardHandler.toggle();
+});
 EditCardHandler.init();
 refreshTags();
 triggerSearch("")

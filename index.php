@@ -34,7 +34,7 @@ class AcronymsDB extends SQLite3 {
         parent::close();
     }
 
-    function getAcronyms($pattern="", $limit=0) {
+    function matchAcronyms($pattern="", $limit=0) {
         $pattern = AcronymsDB::escapeString($pattern);
         $sql = "SELECT DISTINCT id,name,definition,description,tags,link FROM acronyms " .
                "WHERE deleted is NULL AND " .
@@ -46,7 +46,6 @@ class AcronymsDB extends SQLite3 {
         } else {
             $sql .= ";";
         }
-        error_log($sql);
 
         $matches = array();
         $result = $this->query($sql);
@@ -61,6 +60,29 @@ class AcronymsDB extends SQLite3 {
         }
 
         return json_encode($matches, JSON_PRETTY_PRINT);
+    }
+
+    function getAcronym($id) {
+        if (!is_numeric($id)) {
+            return formatJsonStatus("Invalid acronym id");
+        }
+        $id = intval($id);
+
+        $sql = "SELECT id,name,definition,description,tags,link FROM acronyms " .
+               "WHERE deleted is NULL AND id=$id;";
+
+        $result = $this->query($sql);
+        if ($result) {
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                if ($row["tags"]) {
+                    $row["tags"] = explode(",", $row["tags"]);
+                }
+
+                return json_encode($row, JSON_PRETTY_PRINT);
+            }
+        }
+
+        return formatJsonStatus("Not found");
     }
 
     function getTags($pattern="", $limit=0) {
@@ -118,7 +140,8 @@ class AcronymsDB extends SQLite3 {
             return formatJsonStatus("Failed to add new acronym");
         }
 
-        return formatJsonStatus();
+        $id = $this->lastInsertRowId();
+        return formatJsonStatus([ "id" => $id ]);
     }
 
     function updateAcronym($id, $data) {
@@ -159,7 +182,7 @@ class AcronymsDB extends SQLite3 {
             return formatJsonStatus("Failed to add new acronym");
         }
 
-        return formatJsonStatus();
+        return formatJsonStatus([ "id" => $id ]);
     }
 
     function removeAcronym($id) {
@@ -181,22 +204,22 @@ class AcronymsDB extends SQLite3 {
           //return formatJsonStatus("No such acronym");
         }
 
-        return formatJsonStatus();
+        return formatJsonStatus([ "id" => $id ]);
     }
 }
 
-function formatJsonStatus($error="") {
-    if ($error) {
-        $retval = array(
-            "status" => "error",
-            "explanation" => $error
-        );
-    } else {
-        $retval = array(
-            "status" => "ok"
-        );
+function formatJsonStatus($fields=[]) {
+    $status = [ "status" => "ok" ];
+    if (is_string($fields)) {
+        $status["status"] = "error";
+        $status["explanation"] = $fields;
+    } else if (is_array($fields)) {
+        foreach($fields as $key => $val) {
+            $status[$key] = $val;
+        }
     }
-    return json_encode($retval, JSON_PRETTY_PRINT);
+
+    return json_encode($status, JSON_PRETTY_PRINT);
 }
 
 $config = json_decode(file_get_contents("config.json"), false);
@@ -205,9 +228,9 @@ if (!$config) {
     exit(0);
 }
 
-if ($config->datasource == "sqlite") {
+if ($config->data_source == "sqlite") {
     try {
-        $db = new AcronymsDB($config->dbpath);
+        $db = new AcronymsDB($config->db_path);
     } catch (Exception $e) {
         echo formatJsonStatus("Can't connect to database");
         exit(0);
@@ -226,7 +249,13 @@ if (in_array("search", array_keys($_GET))) {
     }
 
     header("Content-Type: application/json; charset=UTF-8");
-    echo $db->getAcronyms($pattern, $limit);
+    echo $db->matchAcronyms($pattern, $limit);
+
+} else if (in_array("get", array_keys($_GET))) {
+    $id = $_GET["get"];
+
+    header("Content-Type: application/json; charset=UTF-8");
+    echo $db->getAcronym($id);
 
 } else if (in_array("add", array_keys($_GET))) {
     $data = json_decode(file_get_contents("php://input"), true);

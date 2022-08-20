@@ -63,7 +63,7 @@ footer a {
 }
 
 .hide {
-  display: none;
+  display: none !important;
 }
 
 .acronym-tags {

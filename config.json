@@ -1,4 +1,5 @@
 {
-  "datasource": "sqlite",
-  "dbpath": "acronyms.db"
+  "data_source": "sqlite",
+  "db_path": "acronyms.db",
+  "server_script_url": "index.php"
 }
