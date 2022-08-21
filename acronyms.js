@@ -19,9 +19,92 @@ function refreshTags() {
   fetch(TAGS_URL)
     .then(res => res.json())
     .then(data => {
-      EditCardHandler.assignTags(data);
+      AutoComplete.items = data;
     });
 }
+
+class AutoComplete {
+  static items = [];
+  static currentFocus = -1;
+
+  static setup(inp) {
+    const list = document.querySelector("[data-autocomplete-list]");
+
+    inp.addEventListener("input", function(e) {
+      AutoComplete.clear();
+
+      if (!inp.value) {
+        return false;
+      }
+
+      AutoComplete.currentFocus = -1;
+      inp.parentNode.appendChild(list);
+
+      AutoComplete.items.forEach(item => {
+        if (item.substr(0, inp.value.length).toUpperCase() == inp.value.toUpperCase()) {
+          const el = document.querySelector("[data-autocomplete-item-template]").content.cloneNode(true).children[0];
+          el.innerHTML += "<strong>" + item.substr(0, inp.value.length) + "</strong>";
+          el.innerHTML += item.substr(inp.value.length);
+          el.querySelector("[data-autocomplete-item-value]").value = item;
+          list.appendChild(el);
+
+          el.addEventListener("click", function(e) {
+            inp.value = this.querySelector("[data-autocomplete-item-value]").value;
+            AutoComplete.clear();
+          });
+        }
+      });
+    });
+
+    inp.addEventListener("keydown", function(ev) {
+      const list = document.querySelector("[data-autocomplete-list]");
+
+      if (ev.keyCode == 40) { // DOWN key
+        if (AutoComplete.currentFocus < list.querySelectorAll("[data-autocomplete-item]").length) {
+          AutoComplete.currentFocus++;
+
+          list.querySelectorAll("[data-autocomplete-item]").forEach((el, i) => {
+            if (i == AutoComplete.currentFocus) {
+              el.classList.add("autocomplete-active");
+            } else {
+              el.classList.remove("autocomplete-active");
+            }
+          });
+        }
+
+      } else if (ev.keyCode == 38) { // UP key
+        if (AutoComplete.currentFocus > -1) {
+          AutoComplete.currentFocus--;
+
+          list.querySelectorAll("[data-autocomplete-item]").forEach((el, i) => {
+            if (i == AutoComplete.currentFocus) {
+              el.classList.add("autocomplete-active");
+            } else {
+              el.classList.remove("autocomplete-active");
+            }
+          });
+        }
+
+      } else if (ev.keyCode == 13) { // ENTER key
+        ev.preventDefault();
+
+        list.querySelectorAll("[data-autocomplete-item]").forEach((el, i) => {
+          if (i == AutoComplete.currentFocus) {
+            el.click();
+          }
+        });
+      }
+    });
+  }
+
+  static clear() {
+    const list = document.querySelector("[data-autocomplete-list]");
+
+    list.querySelectorAll("[data-autocomplete-item]").forEach(el => {
+      list.removeChild(el);
+    });
+  }
+};
 
 class AcronymCardHandler {
   static create(data, sibling = null) {
@@ -118,6 +201,12 @@ class EditCardHandler {
         el.classList.remove("hide");
       });
     });
+
+    AutoComplete.setup(editCard.querySelector("[data-tag1]"));
+    AutoComplete.setup(editCard.querySelector("[data-tag2]"));
+    AutoComplete.setup(editCard.querySelector("[data-tag3]"));
+    AutoComplete.setup(editCard.querySelector("[data-tag4]"));
+    AutoComplete.setup(editCard.querySelector("[data-tag5]"));
   }
 
   static copyFromCard(card) {
@@ -133,11 +222,6 @@ class EditCardHandler {
     card.querySelectorAll("[data-tag]").forEach((el, i) => {
       editCard.querySelector("[data-tag"+(i+1).toString()+"]").value = el.textContent;
     });
-  }
-
-  static assignTags(tags) {
-    const editCard = document.querySelector("[data-card-edit]");
-    // Add support for autocompleting the fields
   }
 
   static submit() {
@@ -278,12 +362,17 @@ searchInput.addEventListener("input", (e) => {
   */
 })
 
+document.addEventListener("click", function (e) {
+    AutoComplete.clear();
+});
+
 document.querySelector("[data-add]").addEventListener("click", function () { 
   acronymCardContainer.querySelectorAll("[data-card]").forEach(el => {
     el.classList.remove("hide");
   });
   EditCardHandler.toggle();
 });
+
 EditCardHandler.init();
 refreshTags();
 triggerSearch("")
