@@ -60,6 +60,7 @@ footer a {
   font-size: 1rem;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   width: 15rem;
+  min-width: 5rem;
 }
 
 .hide {
@@ -133,13 +134,24 @@ a.acronym-tag:hover {
   background-color: #DAE0E6;
 }
 
-.acronyms-container {
-  background-color: white;
-  width: 40rem;
-  min-width: 15rem;
-  max-width: 40rem;
-  margin-left: auto;
-  margin-right: auto;
+@media (min-width: 40rem) {
+  .acronyms-container {
+    background-color: white;
+    width: 40rem;
+    min-width: 15rem;
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 40rem) {
+  .acronyms-container {
+    background-color: white;
+    width: 98vw;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 .acronym-card {
