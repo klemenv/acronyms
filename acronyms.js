@@ -2,12 +2,12 @@ const acronymCardTemplate = document.querySelector("[data-acronym-template]");
 const acronymCardContainer = document.querySelector("[data-acronym-cards-container]");
 const searchInput = document.querySelector("[data-search]");
 
-const ADD_URL = "?add=";
-const GET_URL = "?get=";
-const UPDATE_URL = "?update=";
-const REMOVE_URL = "?remove=";
-const SEARCH_URL = "?limit=100&search="
-const TAGS_URL = "?tags="
+const ADD_URL    = "acronyms.php?add=";
+const GET_URL    = "acronyms.php?get=";
+const UPDATE_URL = "acronyms.php?update=";
+const REMOVE_URL = "acronyms.php?remove=";
+const SEARCH_URL = "acronyms.php?limit=100&search="
+const TAGS_URL   = "acronyms.php?tags="
 
 function triggerSearch(value) {
   searchInput.value = value;
@@ -340,8 +340,14 @@ class EditCardHandler {
   }
 };
 
+let searching = false;
 searchInput.addEventListener("input", (e) => {
   let last;
+  if (searching) {
+    return false;
+  }
+
+  searching = true;
   EditCardHandler.hide();
   while (last = acronymCardContainer.lastChild) {
     acronymCardContainer.removeChild(last);
@@ -351,6 +357,10 @@ searchInput.addEventListener("input", (e) => {
     .then(res => res.json())
     .then(data => {
       data.forEach(acronym => AcronymCardHandler.create(acronym))
+      searching = false;
+    })
+    .catch(error => {
+      searching  = false;
     });
 
   /*
@@ -375,4 +385,5 @@ document.querySelector("[data-add]").addEventListener("click", function () {
 
 EditCardHandler.init();
 refreshTags();
-triggerSearch("")
+const query = window.location.search.replace(/^\?/, '');
+triggerSearch(query);

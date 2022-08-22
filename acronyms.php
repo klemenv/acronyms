@@ -1,9 +1,6 @@
 <?php
 
-/* Path to index.html file */
-const INDEX_HTML = "index.html";
-
-ini_set("display_errors", true);
+ini_set("display_errors", false);
 
 class AcronymsDB extends SQLite3 {
     function __construct($filename) {
@@ -240,6 +237,7 @@ if ($config->data_source == "sqlite") {
     exit(0);
 }
 
+header("Content-Type: application/json; charset=UTF-8");
 if (in_array("search", array_keys($_GET))) {
     $pattern = $_GET["search"];
     if (in_array("limit", array_keys($_REQUEST))) {
@@ -248,44 +246,36 @@ if (in_array("search", array_keys($_GET))) {
         $limit = 0;
     }
 
-    header("Content-Type: application/json; charset=UTF-8");
     echo $db->matchAcronyms($pattern, $limit);
 
 } else if (in_array("get", array_keys($_GET))) {
     $id = $_GET["get"];
 
-    header("Content-Type: application/json; charset=UTF-8");
     echo $db->getAcronym($id);
 
 } else if (in_array("add", array_keys($_GET))) {
     $data = json_decode(file_get_contents("php://input"), true);
 
-    header("Content-Type: application/json; charset=UTF-8");
     echo $db->addAcronym($data);
 
 } else if (in_array("update", array_keys($_GET))) {
     $id = $_GET["update"];
     $data = json_decode(file_get_contents("php://input"), true);
 
-    header("Content-Type: application/json; charset=UTF-8");
     echo $db->updateAcronym($id, $data);
 
 } else if (in_array("remove", array_keys($_GET))) {
     $id = $_GET["remove"];
 
-    header("Content-Type: application/json; charset=UTF-8");
     echo $db->removeAcronym($id);
 
 } else if (in_array("tags", array_keys($_GET))) {
     $pattern = $_GET["tags"];
 
-    header("Content-Type: application/json; charset=UTF-8");
     echo $db->getTags($pattern);
 
 } else {
-    header("Content-Type: text/html; charset=UTF-8");
-    $fp = fopen(INDEX_HTML, "rb");
-    fpassthru($fp);
+    echo formatJsonStatus("Unrecognized request");
 }
 
 ?>
