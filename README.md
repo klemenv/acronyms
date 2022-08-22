@@ -6,10 +6,10 @@ Too many acronyms? Can't remember the exact definition of one? The Acronyms proj
 
 Example instructions for UNIX based web-server with shell access:
 
-    wget https://github.com/klemenv/Acronyms/archive/refs/heads/main.zip
+    wget https://github.com/klemenv/acronyms/archive/refs/heads/main.zip
     mkdir -p -m 750 /var/www/html/acronyms/
     cd /var/www/html/acronyms/ 
-    tar zxf Acronyms-main.zip --strip-components=1
+    tar zxf acronyms-main.zip --strip-components=1
     chown -R www-data:www-data .
 
 The installation and configuration of the web server is outside the scope of this tutorial. However, a few instructions specific to this project are in place:
